@@ -866,8 +866,13 @@ function getClient() {
   }
 
   const schema = getSchema();
+  const sslCa = process.env.UMAMI_DB_CA_CERT;
+  const connectionConfig = (connectionString: string) => ({
+    connectionString,
+    ...(sslCa ? { ssl: { ca: sslCa, rejectUnauthorized: true } } : {}),
+  });
 
-  const baseAdapter = new PrismaPg({ connectionString: url }, { schema });
+  const baseAdapter = new PrismaPg(connectionConfig(url), { schema });
 
   const baseClient = new PrismaClient({
     adapter: baseAdapter,
@@ -885,7 +890,7 @@ function getClient() {
     return baseClient;
   }
 
-  const replicaAdapter = new PrismaPg({ connectionString: replicaUrl }, { schema });
+  const replicaAdapter = new PrismaPg(connectionConfig(replicaUrl), { schema });
 
   const replicaClient = new PrismaClient({
     adapter: replicaAdapter,
